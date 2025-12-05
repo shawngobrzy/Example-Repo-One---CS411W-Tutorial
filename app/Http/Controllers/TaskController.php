@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use OpenAI\Laravel\Facades\OpenAI;
+
 
 class TaskController extends Controller
 {
@@ -12,7 +14,9 @@ class TaskController extends Controller
      */
     public function index()
     {
-        return view('tasks');
+        $tasks = Task::all();
+
+        return view('tasks', compact('tasks'));
 
     }
 
@@ -21,7 +25,7 @@ class TaskController extends Controller
      */
     public function create()
     {
-        //
+        return view('tasks-create');
     }
 
     /**
@@ -29,7 +33,13 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+        'title' => 'required|string|max:250'
+        ]);
+
+        Task::create($validated);
+
+        return redirect('/tasks');
     }
 
     /**
@@ -63,4 +73,17 @@ class TaskController extends Controller
     {
         //
     }
+
+    public function generate()
+    {
+    $result = OpenAI::chat()->create([
+        'model' => 'gpt-4o-mini',
+        'messages' => [
+            ['role' => 'user', 'content' => 'Write a motivational quote about Laravel']
+        ],
+    ]);
+
+    return $result['choices'][0]['message']['content'];
+    }
+
 }
